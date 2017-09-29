@@ -28,6 +28,14 @@ var schooldetails = {
     facultyphonono: null
 };
 
+var studentdetails = {
+    id: null,
+    name: null,
+    school: null,
+    category: null,
+    gender: null
+};
+
 firebase.initializeApp(config);
 var database = firebase.database();
 
@@ -77,7 +85,7 @@ app.get("/student_reg", function(req, res){
           category: null,
           gender: null
     };
-    res.render('studentRegistration',{schools});
+    res.render('studentRegistration',{schools, studentsid});
 });
 
 
@@ -93,33 +101,28 @@ app.post("/reg_school", function(req, res) {
         facultyphonono: req.body.faculty_phoneno,
         chequename: req.body.cheque_name
     };
-    console.log(schooldetails);
+//    console.log(schooldetails);
     schools.push(schooldetails.schoolname);
     writeSchoolData();
     res.redirect('/school_reg');
 });
 
 app.post("/reg_student", function(req, res) {
-    selectoption.isStudentValid = true;
     var uid = req.body.uid;
     var str = req.body.name;
     var str1 = capitalize(str);
-    uid = uid.toUpperCase();
-    if(validateId(uid)) { 
-      studentdetails = {
-            id: uid,
-            name: str1,
-            category: req.body.category,
-            gender: req.body.gender,
-            school: req.body.school,
-        };
-        console.log(studentdetails +'this one');
-        writeStudentData();
-        studentsid.push(uid);
-    }
-    res.redirect('/');
+    studentdetails = {
+        id: uid,
+        name: str1,
+        category: req.body.category,
+        gender: req.body.gender,
+        school: req.body.school,
+    };
+    console.log(studentdetails +'this one');
+    writeStudentData();
+    studentsid.push(uid);
+    res.redirect('/student_reg');
 });
-
 
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
@@ -138,4 +141,27 @@ function writeSchoolData() {
     },
     chequename: schooldetails.chequename
   });
+}
+
+function writeStudentData() {
+  firebase.database().ref('Students/'+ studentdetails.id).set({
+        stdName: studentdetails.name,
+        category: studentdetails.category,
+        gender: studentdetails.gender,
+        school: studentdetails.school
+  });
+  var id = studentdetails.id;
+  var student = { };
+  student[id] = true;
+  firebase.database().ref().child('Schools/' + studentdetails.school + '/Students/')
+        .update(student);
+}
+
+function validateId(uid) {
+   for(var i=0;i<studentsid.length;i++) {
+    if(studentsid[i] == uid) {
+      return false;
+    }
+   }
+   return true;
 }
