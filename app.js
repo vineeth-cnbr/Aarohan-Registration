@@ -68,6 +68,19 @@ app.get("/school_reg", function(req, res){
     res.render('schoolRegistration');
 });
 
+app.get("/student_reg", function(req, res){
+    console.log("student_reg");
+    studentdetails = {
+          id: null,
+          name: null,
+          school: null,
+          category: null,
+          gender: null
+    };
+    res.render('studentRegistration',{schools});
+});
+
+
 app.post("/reg_school", function(req, res) {
     var sch = req.body.school_name;
     var faq = req.body.faculty_name;
@@ -82,8 +95,29 @@ app.post("/reg_school", function(req, res) {
     };
     console.log(schooldetails);
     schools.push(schooldetails.schoolname);
-    writeSchoolData()
+    writeSchoolData();
     res.redirect('/school_reg');
+});
+
+app.post("/reg_student", function(req, res) {
+    selectoption.isStudentValid = true;
+    var uid = req.body.uid;
+    var str = req.body.name;
+    var str1 = capitalize(str);
+    uid = uid.toUpperCase();
+    if(validateId(uid)) { 
+      studentdetails = {
+            id: uid,
+            name: str1,
+            category: req.body.category,
+            gender: req.body.gender,
+            school: req.body.school,
+        };
+        console.log(studentdetails +'this one');
+        writeStudentData();
+        studentsid.push(uid);
+    }
+    res.redirect('/');
 });
 
 
