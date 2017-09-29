@@ -61,7 +61,6 @@
         var code = id.substring(4,8);
         if (id.length != 8 || arhn != "ARHN")  {
             Materialize.toast('Invalid ID',6000);
-            document.getElementById("msg").innerHTML = "Invalid ID"
             return false;
         }
         if(isNaN(code)) {
