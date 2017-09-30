@@ -38,6 +38,14 @@ var studentdetails = {
     gender: null
 };
 
+var editStudent = {
+    id: null,
+    name: null,
+    school: null,
+    category: null,
+    gender: null
+}
+
 firebase.initializeApp(config);
 var database = firebase.database();
 
@@ -86,7 +94,6 @@ app.get("/schools", function (req, res) {
         });
     }, 1000);
 
-
 });
 
 app.get("/school_reg", function (req, res) {
@@ -100,7 +107,6 @@ app.get("/school_reg", function (req, res) {
 });
 
 app.get("/student_reg", function (req, res) {
-
     studentdetails = {
         id: null,
         name: null,
@@ -112,6 +118,22 @@ app.get("/student_reg", function (req, res) {
         schools,
         studentsid
     });
+});
+
+app.get("/edit_student", function (req, res) {
+    setTimeout(function() {
+        res.render('editStudent', {
+            schools,
+            editStudent
+        }); 
+    },1000);
+    editStudent = {
+        id: null,
+        name: null,
+        category: null,
+        gender: null,
+        school: null,
+    };
 });
 
 
@@ -146,6 +168,27 @@ app.post("/reg_student", function (req, res) {
     writeStudentData();
     studentsid.push(uid);
     res.redirect('/student_reg');
+});
+
+app.post("/student_edit", function (req, res) {
+    var uid = req.body.uid;
+    var str = req.body.name;
+    var str1 = capitalize(str);
+    editStudent = {
+        id: uid,
+        name: str1,
+        category: req.body.category,
+        gender: req.body.gender,
+        school: req.body.school,
+    };
+    writeStudentData();
+    res.redirect('/edit_student');
+});
+
+app.post("/return_student", function(req, res) {
+    var id = req.body.uid;
+    var student = readOneStudent(id);
+    res.redirect("/edit_student")
 });
 
 app.listen(app.get('port'), function () {
@@ -190,4 +233,28 @@ function validateId(uid) {
         }
     }
     return true;
+}
+
+function readOneStudent(editId) {
+    
+    ref = database.ref("Students/");
+    studentsid = new Array();
+    ref.once("value").then(function (snapshot) {
+        snapshot.forEach(function (childSnapshot) {
+            var key = childSnapshot.key;
+            if(key == editId) {
+                temp = childSnapshot.val();
+                console.log(temp);
+                console.log("category " + temp.Category )
+                editStudent.uid = key;
+                editStudent.name = temp.stdName;
+                editStudent.category = temp.Category;
+                editStudent.school = temp.school;
+                editStudent.gender = temp.gender;
+            }
+            studentsid.push(key);
+            //console.log(childSnapshot.val());
+        });
+    });
+    
 }
