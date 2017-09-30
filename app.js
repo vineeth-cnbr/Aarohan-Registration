@@ -46,10 +46,12 @@ ref.once("value").then(function(snapshot) {
             var key = childSnapshot.key;
             var childData = childSnapshot.val();
             console.log(key);
+            console.log(childData);
             schools.push(key);
         });
 });
-ref = database.ref("Students/")
+
+ref = database.ref("Students/");
 studentsid = new Array();
 ref.once("value").then(function(snapshot) {
         snapshot.forEach(function(childSnapshot) {
@@ -64,6 +66,28 @@ app.get("/", function(req, res) {
     console.log("main");
 //  console.log(schools);
     res.render('index');
+});
+
+
+app.get("/schools", function(req, res){
+    var refri = database.ref("Schools/");
+    var viewschools = new Array();
+   
+    refri.once("value").then(function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {    
+            var key = childSnapshot.key;
+            var childData = childSnapshot.val();
+            viewschools.push({
+                parent: key,
+                child: childData
+            });
+        });
+    });
+    setTimeout(function() {
+        res.render('viewSchools.ejs', {viewschools});
+    }, 1000);
+    
+    
 });
 
 app.get("/school_reg", function(req, res){
