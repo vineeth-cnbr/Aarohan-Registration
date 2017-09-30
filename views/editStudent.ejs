@@ -48,7 +48,7 @@
     
     <div class="col s12 l4">
     <div class="card">
-        <form onsubmit="return isValidForm()" action="/student_edit" method="POST">
+        <form onsubmit="return isValidForm1()" action="/student_edit" method="POST">
             <div class="card-content">
             <h4>Edit Student</h4><br>
                     <div class="input-field">
@@ -101,6 +101,21 @@
 <script>
     function isValidForm() {
         var id = document.getElementById("uid").value;
+        id = id.toUpperCase();
+        var arhn = id.substring(0,4);
+        var code = id.substring(4,8);
+        if (id.length != 8 || arhn != "ARHN")  {
+            Materialize.toast('Invalid ID',4000);
+            return false;
+        }
+        if(isNaN(code)) {
+            Materialize.toast('Invalid ID',4000);
+            return false;
+        }
+        return true;
+    }
+    function isValidForm1() {
+        var id = document.getElementById("uid1").value;
         id = id.toUpperCase();
         var arhn = id.substring(0,4);
         var code = id.substring(4,8);

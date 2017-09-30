@@ -165,7 +165,7 @@ app.post("/reg_student", function (req, res) {
         gender: req.body.gender,
         school: req.body.school,
     };
-    writeStudentData();
+    writeStudentData(studentdetails);
     studentsid.push(uid);
     res.redirect('/student_reg');
 });
@@ -181,7 +181,7 @@ app.post("/student_edit", function (req, res) {
         gender: req.body.gender,
         school: req.body.school,
     };
-    writeStudentData();
+    writeStudentData(editStudent);
     res.redirect('/edit_student');
 });
 
@@ -212,7 +212,7 @@ function writeSchoolData() {
     });
 }
 
-function writeStudentData() {
+function writeStudentData(studentdetails) {
     firebase.database().ref('Students/' + studentdetails.id).set({
         stdName: studentdetails.name,
         category: studentdetails.category,
