@@ -38,13 +38,19 @@ var studentdetails = {
     gender: null
 };
 
-var editStudent = {
+var editstudent = {
     id: null,
     name: null,
     school: null,
     category: null,
     gender: null
 }
+
+var eventdetails = {
+        name: null,
+        category: null,
+        grpcount: null
+};
 
 firebase.initializeApp(config);
 var database = firebase.database();
@@ -120,14 +126,23 @@ app.get("/student_reg", function (req, res) {
     });
 });
 
+app.get("/event_reg", function(req, res) {
+    eventdetails = {
+        name: null,
+        category: null,
+        grpcount: null
+    };
+    res.render('eventRegistration');
+})
+
 app.get("/edit_student", function (req, res) {
     setTimeout(function() {
         res.render('editStudent', {
             schools,
-            editStudent
+            editstudent
         }); 
     },1000);
-    editStudent = {
+    editstudent = {
         id: null,
         name: null,
         category: null,
@@ -170,18 +185,33 @@ app.post("/reg_student", function (req, res) {
     res.redirect('/student_reg');
 });
 
+app.post("/reg_event", function(req, res){
+    eventdetails = {
+        name: req.body.name,
+        category: req.body.category,
+        grpcount: req.body.grpcount
+    };
+    console.log(eventdetails);
+    writeEventdata();
+    setTimeout(function() {
+        res.redirect('/event_reg');
+    },500);
+    
+    
+});
+
 app.post("/student_edit", function (req, res) {
     var uid = req.body.uid;
     var str = req.body.name;
     var str1 = capitalize(str);
-    editStudent = {
+    editstudent = {
         id: uid,
         name: str1,
         category: req.body.category,
         gender: req.body.gender,
         school: req.body.school,
     };
-    writeStudentData(editStudent);
+    writeStudentData(editstudent);
     res.redirect('/edit_student');
 });
 
@@ -226,6 +256,14 @@ function writeStudentData(studentdetails) {
         .update(student);
 }
 
+function writeEventdata() {
+
+  firebase.database().ref('Events/'+ eventdetails.name).set({
+        Category: eventdetails.category,
+        grpCount: eventdetails.grpcount
+  });
+}
+
 function validateId(uid) {
     for (var i = 0; i < studentsid.length; i++) {
         if (studentsid[i] == uid) {
@@ -245,12 +283,12 @@ function readOneStudent(editId) {
             if(key == editId) {
                 temp = childSnapshot.val();
                 console.log(temp);
-                console.log("category " + temp.Category )
-                editStudent.uid = key;
-                editStudent.name = temp.stdName;
-                editStudent.category = temp.Category;
-                editStudent.school = temp.school;
-                editStudent.gender = temp.gender;
+                console.log("category " + temp.category )
+                editstudent.uid = key;
+                editstudent.name = temp.stdName;
+                editstudent.category = temp.category;
+                editstudent.school = temp.school;
+                editstudent.gender = temp.gender;
             }
             studentsid.push(key);
             //console.log(childSnapshot.val());
