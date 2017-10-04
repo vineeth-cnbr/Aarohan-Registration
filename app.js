@@ -289,8 +289,8 @@ function readOneStudent(editId) {
                 editstudent.category = temp.category;
                 editstudent.school = temp.school;
                 editstudent.gender = temp.gender;
+                
             }
-            studentsid.push(key);
             //console.log(childSnapshot.val());
         });
     });
