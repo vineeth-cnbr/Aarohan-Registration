@@ -218,7 +218,9 @@ app.post("/student_edit", function (req, res) {
 app.post("/return_student", function(req, res) {
     var id = req.body.uid;
     var student = readOneStudent(id);
-    res.redirect("/edit_student")
+    setTimeout(function() {
+        res.redirect("/edit_student");
+    },2000);
 });
 
 app.listen(app.get('port'), function () {
