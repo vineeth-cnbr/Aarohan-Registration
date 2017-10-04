@@ -136,12 +136,10 @@ app.get("/event_reg", function(req, res) {
 })
 
 app.get("/edit_student", function (req, res) {
-    setTimeout(function() {
-        res.render('editStudent', {
-            schools,
-            editstudent
-        }); 
-    },1000);
+    res.render('editStudent', {
+        schools,
+        editstudent
+    }); 
     editstudent = {
         id: null,
         name: null,
