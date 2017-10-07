@@ -18,7 +18,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="gender">
+                    <select name="gender" required>
                       <option disabled selected></option>
                       <option>Male</option>
                       <option>Female</option>
@@ -27,7 +27,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="category">
+                    <select name="category" required>
                       <option disabled selected></option>
                       <option>Junior</option>
                       <option>Senior</option>
@@ -36,7 +36,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="school">
+                    <select name="school" required>
                         <option value="" disabled selected></option>
                         <% for(var i=0;i<Object.keys(schools).length;i++) { %>
                         <option><%= schools[i] %></option>

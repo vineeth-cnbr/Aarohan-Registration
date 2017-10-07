@@ -3,18 +3,17 @@ var express = require("express"),
     path = __dirname + '/views/',
     router = express.Router(),
     bodyParser = require('body-parser'),
-    firebase = require('firebase');
+    firebase = require('firebase'),
+    admin = require("firebase-admin");
 
-app.use(bodyParser.json()); // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({
-    extended: false
-})); // to support URL-encoded bodie
+var serviceAccount = require("./aarohan2017-61ac6-firebase-adminsdk-8wijo-a82e4e4e19.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://aarohan2017-61ac6.firebaseio.com" 
+});
 
 
-app.set('port', (process.env.PORT || 8000));
-app.use(express.static(__dirname + '/public'));
-app.set('views', path);
-app.set('view engine', 'ejs');
 
 var config = {
     apiKey: "AIzaSyC-Sd37f6e6Ml6ymgy40dgB9y9G3gywu-g",
@@ -52,8 +51,8 @@ var eventdetails = {
         grpcount: null
 };
 
-firebase.initializeApp(config);
-var database = firebase.database();
+//firebase.initializeApp(config);
+var database = admin.database();
 
 var ref = database.ref("Schools/");
 schools = new Array();
@@ -62,6 +61,7 @@ ref.once("value").then(function (snapshot) {
         var key = childSnapshot.key;
         var childData = childSnapshot.val();
         schools.push(key);
+        console.log(key);
     });
 });
 
@@ -74,6 +74,17 @@ ref.once("value").then(function (snapshot) {
     });
 });
 
+app.use(bodyParser.json()); // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({
+    extended: false
+})); // to support URL-encoded bodie
+
+
+app.set('port', (process.env.PORT || 8000));
+app.use(express.static(__dirname + '/public'));
+app.set('views', path);
+app.set('view engine', 'ejs');
+
 
 app.get("/", function (req, res) {
     res.render('index');
@@ -81,26 +92,15 @@ app.get("/", function (req, res) {
 
 
 app.get("/schools", function (req, res) {
-    var refri = database.ref("Schools/");
     var viewschools = new Array();
-
-    refri.once("value").then(function (snapshot) {
-        snapshot.forEach(function (childSnapshot) {
-            var key = childSnapshot.key;
-            var childData = childSnapshot.val();
-            viewschools.push({
-                parent: key,
-                child: childData
-            });
-        });
-    });
-    setTimeout(function () {
-        res.render('viewSchools.ejs', {
-            viewschools
-        });
-    }, 1000);
-
+    getAllSchools(function(viewschools) {
+       res.render('viewSchools.ejs', {
+        viewschools
+       }); 
+    });   
 });
+
+
 
 app.get("/school_reg", function (req, res) {
     schooldetails = {
@@ -138,7 +138,8 @@ app.get("/event_reg", function(req, res) {
 app.get("/edit_student", function (req, res) {
     res.render('editStudent', {
         schools,
-        editstudent
+        editstudent,
+        studentsid
     }); 
     editstudent = {
         id: null,
@@ -213,12 +214,13 @@ app.post("/student_edit", function (req, res) {
     res.redirect('/edit_student');
 });
 
-app.post("/return_student", function(req, res) {
+;app.post("/return_student", function(req, res) {
     var id = req.body.uid;
-    var student = readOneStudent(id);
-    setTimeout(function() {
+    readOneStudent(id,function() {
+       
         res.redirect("/edit_student");
-    },2000);
+    });
+    
 });
 
 app.listen(app.get('port'), function () {
@@ -232,18 +234,22 @@ function capitalize(str) {
 }
 
 function writeSchoolData() {
-    firebase.database().ref('Schools/' + schooldetails.schoolname).set({
+    database.ref('Schools/' + schooldetails.schoolname).set({
         faculty: {
             name: schooldetails.facultyname,
             email: schooldetails.facultyemail,
             phoneno: schooldetails.facultyphonono
         },
         chequename: schooldetails.chequename
+    },function(error) {
+        if(error) {
+        console.log("school Registration failed");
+        }
     });
 }
 
 function writeStudentData(studentdetails) {
-    firebase.database().ref('Students/' + studentdetails.id).set({
+    database.ref('Students/' + studentdetails.id).set({
         stdName: studentdetails.name,
         category: studentdetails.category,
         gender: studentdetails.gender,
@@ -252,13 +258,13 @@ function writeStudentData(studentdetails) {
     var id = studentdetails.id;
     var student = {};
     student[id] = studentdetails.name;
-    firebase.database().ref().child('Schools/' + studentdetails.school + '/Students/')
+    database.ref().child('Schools/' + studentdetails.school + '/Students/')
         .update(student);
 }
 
 function writeEventdata() {
 
-  firebase.database().ref('Events/'+ eventdetails.name).set({
+  database.ref('Events/'+ eventdetails.name).set({
         Category: eventdetails.category,
         grpCount: eventdetails.grpcount
   });
@@ -273,11 +279,9 @@ function validateId(uid) {
     return true;
 }
 
-function readOneStudent(editId) {
-    
+function readOneStudent(editId, callb) {
     ref = database.ref("Students/");
-    studentsid = new Array();
-    ref.once("value").then(function (snapshot) {
+    ref.once("value").then( function (snapshot) {
         snapshot.forEach(function (childSnapshot) {
             var key = childSnapshot.key;
             if(key == editId) {
@@ -289,10 +293,33 @@ function readOneStudent(editId) {
                 editstudent.category = temp.category;
                 editstudent.school = temp.school;
                 editstudent.gender = temp.gender;
+                console.log("true");
+                callb();
                 
             }
             //console.log(childSnapshot.val());
         });
+        console.log("end foreach");
+        callb();
+    }).catch(function(err) {
+        console.log("firebase error");
+        callb();
+   });   
+}
+
+function getAllSchools(cb) {
+    var refri = database.ref("Schools/");
+    viewschools = new Array();
+
+    refri.once("value").then(function (snapshot) {
+        snapshot.forEach(function (childSnapshot) {
+            var key = childSnapshot.key;
+            var childData = childSnapshot.val();
+            viewschools.push({
+                parent: key,
+                child: childData
+            });
+        });
+        cb(viewschools);
     });
-    
 }

@@ -60,7 +60,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="gender">
+                    <select name="gender" required>
                       <option disabled selected></option>
                       <option>Male</option>
                       <option>Female</option>
@@ -69,7 +69,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="category">
+                    <select name="category" required>
                       <option disabled selected></option>
                       <option>Junior</option>
                       <option>Senior</option>
@@ -78,7 +78,7 @@
                     </div>
                 
                     <div class="input-field">
-                    <select name="school">
+                    <select name="school" required>
                         <option value="" disabled selected></option>
                         <% for(var i=0;i<Object.keys(schools).length;i++) { %>
                         <option><%= schools[i] %></option>
@@ -111,7 +111,15 @@
             Materialize.toast('Invalid ID',4000);
             return false;
         }
-        return true;
+        <% for(var i=0;i<studentsid.length;i++) { %>
+            console.log("<%= studentsid[i] %>"+" "+id)
+            if(id=="<%= studentsid[i] %>") {
+            Materialize.toast('Aarohan ID exists',6000);
+            return true;
+            }
+        <% } %>
+        Materialize.toast("Aarohan ID doesnt exist",6000);
+        return false;
     }
     function isValidForm1() {
         var id = document.getElementById("uid1").value;
