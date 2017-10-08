@@ -157,7 +157,31 @@ app.get("/edit_student", function (req, res) {
     };
 });
 
+app.get("/notif", function (req, res) {
+    res.render('notification');
+});
 
+app.post("/send_notification", function(req, res) {
+    
+        var title = req.body.Title;
+        var message = req.body.Message;
+
+        var message = { 
+            app_id: "460f102c-2f26-4316-b72d-9218696829eb",
+            headings:{"en": title},
+            contents: {"en": message},
+            priority:10,
+            included_segments: ["All"]
+          };
+          sendNotification(message);
+          
+          res.redirect('/notif');
+          
+        
+           });
+    
+
+          
 app.post("/reg_school", function (req, res) {
     var sch = req.body.school_name;
     var faq = req.body.faculty_name;
@@ -340,3 +364,34 @@ function checkInternet(cb) {
         }
     })
 }
+
+var sendNotification = function(data) {
+    var headers = {
+      "Content-Type": "application/json; charset=utf-8",
+      "Authorization": "Basic NDFkMmQ5ZDYtNzFjMS00ZGY4LTg2MTItYzllM2ViOTA4NGQw"
+    };
+
+    var options = {
+      host: "onesignal.com",
+      port: 443,
+      path: "/api/v1/notifications",
+      method: "POST",
+      headers: headers
+    };
+
+    var https = require('https');
+    var req = https.request(options, function(res) {  
+      res.on('data', function(data) {
+        console.log("Response:");
+        console.log(JSON.parse(data));
+      });
+    });
+
+    req.on('error', function(e) {
+      console.log("ERROR:");
+      console.log(e);
+    });
+
+    req.write(JSON.stringify(data));
+    req.end();
+};
