@@ -1,2 +1,2 @@
-./node_modules
-./secret.json
+**/node_modules
+**/secret.json
