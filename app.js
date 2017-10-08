@@ -6,7 +6,7 @@ var express = require("express"),
     firebase = require('firebase'),
     admin = require("firebase-admin");
 
-var serviceAccount = require("./aarohan2017-61ac6-firebase-adminsdk-8wijo-a82e4e4e19.json");
+var serviceAccount = require("./secret.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -92,12 +92,19 @@ app.get("/", function (req, res) {
 
 
 app.get("/schools", function (req, res) {
-    var viewschools = new Array();
-    getAllSchools(function(viewschools) {
-       res.render('viewSchools.ejs', {
-        viewschools
-       }); 
-    });   
+    checkInternet(function(isThere) {
+        if(isThere) {
+            var viewschools = new Array();
+            getAllSchools(function(viewschools) {
+                res.render('viewSchools.ejs', {
+                    viewschools
+                }); 
+            }); 
+        } else {
+            res.render('schoolError');
+        }
+    });
+  
 });
 
 
@@ -322,4 +329,14 @@ function getAllSchools(cb) {
         });
         cb(viewschools);
     });
+}
+
+function checkInternet(cb) {
+    require('dns').lookup('google.com',function(err) {
+        if (err && err.code == "ENOTFOUND") {
+            cb(false);
+        } else {
+            cb(true);
+        }
+    })
 }
