@@ -51,6 +51,8 @@ var eventdetails = {
         grpcount: null
 };
 
+var ips = new Array();
+
 //firebase.initializeApp(config);
 var database = admin.database();
 
@@ -82,28 +84,66 @@ app.use(bodyParser.urlencoded({
 
 app.set('port', (process.env.PORT || 8000));
 app.use(express.static(__dirname + '/public'));
+function myMiddleware (req, res, next) {
+    
+    if (req.method === 'GET' && req.path!='/schools') {
+        var isValid = false;
+       console.log("GET");
+        for(var i=0;i<ips.length;i++) {
+            if(req.ip==ips[i]) {
+                console.log(ips[i]);
+                isValid = true;
+            }
+        }
+        if (!isValid && req.path!='/login') {
+            res.redirect('/login');
+        }
+        else {
+            next();
+        }
+    }
+    next();
+   
+}
+
+app.use(myMiddleware);
 app.set('views', path);
 app.set('view engine', 'ejs');
 
+app.get("/login", function(req, res) {
+    res.render("login.ejs");
+});
+
+app.post("/login_post", function(req, res) {
+    console.log("Before GO");
+    if(req.body.passkey=="GO") {
+        console.log("GO");
+        ips.push(req.ip);
+    }
+    res.redirect("/");
+});
 
 app.get("/", function (req, res) {
     res.render('index');
 });
 
 
-app.get("/schools", function (req, res) {
+app.get("/schools", function (req, res, next) {
     checkInternet(function(isThere) {
         if(isThere) {
+            console.log("isThere")
             var viewschools = new Array();
             getAllSchools(function(viewschools) {
                 res.render('viewSchools.ejs', {
                     viewschools
                 }); 
-            }); 
+            });
+            console.log("after schools")
         } else {
             res.render('schoolError');
         }
     });
+    
   
 });
 
@@ -301,14 +341,14 @@ function writeEventdata() {
   });
 }
 
-function validateId(uid) {
+/*function validateId(uid) {
     for (var i = 0; i < studentsid.length; i++) {
         if (studentsid[i] == uid) {
             return false;
         }
     }
     return true;
-}
+}*/
 
 function readOneStudent(editId, callb) {
     ref = database.ref("Students/");
@@ -341,7 +381,7 @@ function readOneStudent(editId, callb) {
 function getAllSchools(cb) {
     var refri = database.ref("Schools/");
     viewschools = new Array();
-
+    console.log("here 0");
     refri.once("value").then(function (snapshot) {
         snapshot.forEach(function (childSnapshot) {
             var key = childSnapshot.key;
@@ -351,8 +391,17 @@ function getAllSchools(cb) {
                 child: childData
             });
         });
+        console.log("here 1");
         cb(viewschools);
-    });
+    }).catch(function(err) {
+        if(err) {
+            console.log("Here it comes 2" + err);
+            cb(viewschools);
+        }
+        else {
+            cb(viewschools);
+        }
+    });;
 }
 
 function checkInternet(cb) {
