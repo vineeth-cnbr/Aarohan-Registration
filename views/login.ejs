@@ -1,32 +1,61 @@
-<% include nav.ejs %>
-<div class="container">
-<div class="row"></div>
-<div class="row">
-    <div class="col l3"></div>
-    <div class="col s12 l6">
-    <div class="card">
+<% include loginnav.ejs %>
 
-        <form action="/login_post" method="POST">
-            <div class="card-content">
-            <h4 style="color: #faae29">Login</h4><br>
+  <!-- Login Container -->
 
-
-                    <div class="input-field">
-                      <input id="passkey" name="passkey" type="text">
-                      <label for="passkey">Passkey</label>
+  <!-- ..................................................................................................................................... -->
+  <div class="container" id="LoginContainer">
+    <div class="row"></div>
+    <div id="login-page" class="row">
+        <div class="col s12 m2 l4"> 
+        </div>
+      <div class="col s12 m8 l4 z-depth-4 card-panel">
+        <form class="login-form">
+                <div class="row ">
+                        <h4 class="center-align">Login</h4>
                     </div>
-
-            
+                    
+          <div class="row margin">
+            <div class="input-field col s12">
+              <i class="material-icons prefix">account_circle</i>
+              <input id="username"  type="text">
+              <label for="username" class="center-align">Username</label>
             </div>
-            <div class="card-action">
-            <button class="btn waves-effect waves-light" type="submit" name="action">Submit
-                <i class="material-icons right">send</i>
-            </button>
+          </div>
+          <div class="row margin center-align">
+            <div class="input-field col s12">
+              <i class="material-icons prefix">lock</i>
+              <input id="password" type="password">
+              <label for="password">Password</label>
             </div>
+          </div>
+      
+          <div class="row">
+            <div class="input-field col s12 ">
+              <a onclick="toggleSignIn()"  class="btn waves-effect waves-light col s12">Login</a>
+            </div>
+          </div>
+          <div class="row"></div>
         </form>
+      </div>
+  
+      <div class="col s12 m2 l4"> <!-- Note that "m4 l3" was added -->
+  
+      </div>
     </div>
-</div>
-</div>
-</div>
+  
+  </div>
+  
+  
+  
+  <!-- ..................................................................................................................................... -->
+    
 
-<% include foot.ejs %>
+  <%include foot.ejs%>
+  
+    
+
+
+ 
+
+
+

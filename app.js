@@ -6,21 +6,24 @@ var express = require("express"),
     firebase = require('firebase'),
     admin = require("firebase-admin");
 
+
+  
 var serviceAccount = require("./secret.json");
+
+app.use(bodyParser.json()); 
+app.use(bodyParser.urlencoded({
+    extended: false
+})); 
+app.set('port', (process.env.PORT || 8000));
+app.use(express.static(__dirname + '/public'));
+
+
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://aarohan2017-61ac6.firebaseio.com" 
 });
 
-
-
-/*var config = {
-    apiKey: "AIzaSyC-Sd37f6e6Ml6ymgy40dgB9y9G3gywu-g",
-    authDomain: "aarohan2017-61ac6.firebaseapp.com",
-    databaseURL: "https://aarohan2017-61ac6.firebaseio.com/",
-    storageBucket: "aarohan2017-61ac6.appspot.com",
-};*/
 
 var schooldetails = {
     schoolname: null,
@@ -45,6 +48,13 @@ var editstudent = {
     gender: null
 }
 
+var editschool = {
+    schoolname: null,
+    facultyname: null,
+    facultyemail: null,
+    facultyphonono: null
+}
+
 var eventdetails = {
         name: null,
         category: null,
@@ -53,7 +63,6 @@ var eventdetails = {
 
 var ips = new Array();
 
-//firebase.initializeApp(config);
 var database = admin.database();
 
 var ref = database.ref("Schools/");
@@ -63,7 +72,6 @@ ref.once("value").then(function (snapshot) {
         var key = childSnapshot.key;
         var childData = childSnapshot.val();
         schools.push(key);
-        console.log(key);
     });
 });
 
@@ -76,42 +84,22 @@ ref.once("value").then(function (snapshot) {
     });
 });
 
-app.use(bodyParser.json()); // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({
-    extended: false
-})); // to support URL-encoded bodie
 
 
-app.set('port', (process.env.PORT || 8000));
-app.use(express.static(__dirname + '/public'));
-function myMiddleware (req, res, next) {
-    
-    if (req.method === 'GET' && req.path!='/schools') {
-        var isValid = false;
-       console.log("GET");
-        for(var i=0;i<ips.length;i++) {
-            if(req.ip==ips[i]) {
-                console.log(ips[i]);
-                isValid = true;
-            }
-        }
-        if (!isValid && req.path!='/login') {
-            res.redirect('/login');
-        }
-        else {
-            next();
-        }
-    }
-    next();
-   
-}
-
-app.use(myMiddleware);
 app.set('views', path);
 app.set('view engine', 'ejs');
 
 app.get("/login", function(req, res) {
-    res.render("login.ejs");
+    checkInternet(function(isThere) {
+        if(isThere) {
+            res.render("login.ejs");
+
+        } else {
+            res.render('schoolError');
+        }
+    });
+    
+    
 });
 
 app.post("/login_post", function(req, res) {
@@ -126,6 +114,8 @@ app.post("/login_post", function(req, res) {
 app.get("/", function (req, res) {
     res.render('index');
 });
+
+
 
 
 app.get("/schools", function (req, res, next) {
@@ -150,55 +140,147 @@ app.get("/schools", function (req, res, next) {
 
 
 app.get("/school_reg", function (req, res) {
-    schooldetails = {
-        schoolname: null,
-        facultyname: null,
-        facultyemail: null,
-        facultyphonono: null
-    };
-    res.render('schoolRegistration');
+    checkInternet(function(isThere) {
+        if(isThere) {
+        schooldetails = {
+            schoolname: null,
+            facultyname: null,
+            facultyemail: null,
+            facultyphonono: null
+        };
+        setTimeout(function() {
+            res.render('schoolRegistration',{
+                schools
+            });    
+        },500);
+
+        } else {
+            res.render('schoolError');
+        }
+    });
+    
+        
+    
 });
 
 app.get("/student_reg", function (req, res) {
-    studentdetails = {
-        id: null,
-        name: null,
-        school: null,
-        category: null,
-        gender: null
-    };
-    res.render('studentRegistration', {
-        schools,
-        studentsid
+    checkInternet(function(isThere) {
+        if(isThere) {
+        studentdetails = {
+            id: null,
+            name: null,
+            school: null,
+            category: null,
+            gender: null
+        };
+        res.render('studentRegistration', {
+            schools,
+            studentsid
+        });
+
+
+        } else {
+            res.render('schoolError');
+        }
     });
+
+    
 });
 
 app.get("/event_reg", function(req, res) {
-    eventdetails = {
-        name: null,
-        category: null,
-        grpcount: null
-    };
-    res.render('eventRegistration');
-})
+    checkInternet(function(isThere) {
+        if(isThere) {
+        eventdetails = {
+            name: null,
+            category: null,
+            grpcount: null
+        };
+        res.render('eventRegistration');
 
-app.get("/edit_student", function (req, res) {
-    res.render('editStudent', {
-        schools,
-        editstudent,
-        studentsid
-    }); 
-    editstudent = {
-        id: null,
-        name: null,
-        category: null,
-        gender: null,
-        school: null,
-    };
+
+        } else {
+            res.render('schoolError');
+        }
+    });    
+    
 });
 
+app.get("/edit",function(req, res) {
+        res.render("edit.ejs");
+
+        
+});
+
+app.get("/edit_student", function (req, res) {
+    checkInternet(function(isThere) {
+        if(isThere) {
+        res.render('editStudent', {
+                schools,
+                editstudent,
+                studentsid
+            }); 
+            editstudent = {
+                id: null,
+                name: null,
+                category: null,
+                gender: null,
+                school: null,
+            };
+        } else {
+            res.render('schoolError');
+        }
+    });
+    
+    
+});
+
+app.get("/edit_school", function (req, res) {
+    checkInternet(function(isThere) {
+        if(isThere) {
+        res.render('editSchool', {
+                schools,
+                editschool
+            }); 
+            editschool = {
+                    schoolname: null,
+                    facultyname: null,
+                    facultyemail: null,
+                    facultyphonono: null
+            };
+        } else {
+            res.render('schoolError');
+        }
+    });
+    
+    
+});
+
+
+
+
+
+
 app.get("/notif", function (req, res) {
-    res.render('notification');
+    checkInternet(function(isThere) {
+            if(isThere) {
+            var uids =new Array();
+            var id = req.query.uid;
+            getPrevilage(function(uids) {
+                var arrayLength = uids.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    if(uids[i]==id){
+                        res.render('notification');
+                    }
+                }
+            });
+
+        } else {
+            res.render('schoolError');
+        }
+    }); 
+    
+    
+    
 });
 
 app.post("/send_notification", function(req, res) {
@@ -215,16 +297,18 @@ app.post("/send_notification", function(req, res) {
           };
           sendNotification(message);
           
-          res.redirect('/notif');
+          res.redirect('/');
           
         
-           });
+});
     
 
           
 app.post("/reg_school", function (req, res) {
     var sch = req.body.school_name;
     var faq = req.body.faculty_name;
+    sch = sch.replace(/^\s+|\s+$/g, "");
+    faq = faq.replace(/^\s+|\s+$/g, "");
     sch = capitalize(sch);
     faq = capitalize(faq);
     schooldetails = {
@@ -235,7 +319,7 @@ app.post("/reg_school", function (req, res) {
         chequename: req.body.cheque_name
     };
     schools.push(schooldetails.schoolname);
-    writeSchoolData();
+    writeSchoolData(schooldetails);
     res.redirect('/school_reg');
 });
 
@@ -285,11 +369,40 @@ app.post("/student_edit", function (req, res) {
     res.redirect('/edit_student');
 });
 
-;app.post("/return_student", function(req, res) {
+app.post("/school_edit", function (req, res) {
+    var sch = req.body.school_name;
+    var faq = req.body.faculty_name;
+    sch = sch.replace(/^\s+|\s+$/g, "");
+    faq = faq.replace(/^\s+|\s+$/g, "");
+    sch = capitalize(sch);
+    faq = capitalize(faq);
+    editschool = {
+        schoolname: sch,
+        facultyname: faq,
+        facultyemail: req.body.faculty_email,
+        facultyphonono: req.body.faculty_phoneno,
+        chequename: req.body.cheque_name
+    };
+    //schools.push(edit.schoolname);
+    writeSchoolData(editschool);
+    res.redirect('/edit_school');
+});
+
+
+app.post("/return_student", function(req, res) {
     var id = req.body.uid;
     readOneStudent(id,function() {
        
         res.redirect("/edit_student");
+    });
+    
+});
+
+app.post("/return_school", function(req, res) {
+    var school = req.body.school;
+    readOneSchool(school,function() {
+       
+        res.redirect("/edit_school");
     });
     
 });
@@ -304,7 +417,7 @@ function capitalize(str) {
     });
 }
 
-function writeSchoolData() {
+function writeSchoolData(schooldetails) {
     database.ref('Schools/' + schooldetails.schoolname).set({
         faculty: {
             name: schooldetails.facultyname,
@@ -318,6 +431,8 @@ function writeSchoolData() {
         }
     });
 }
+
+
 
 function writeStudentData(studentdetails) {
     database.ref('Students/' + studentdetails.id).set({
@@ -378,6 +493,54 @@ function readOneStudent(editId, callb) {
    });   
 }
 
+function readOneSchool(editId, callb) {
+    ref = database.ref("Schools/");
+    ref.once("value").then( function (snapshot) {
+        snapshot.forEach(function (childSnapshot) {
+            var key = childSnapshot.key;
+            if(key == editId) {
+                temp = childSnapshot.val();
+                editschool = {
+                    schoolname: key,
+                    facultyname: temp.faculty.name,
+                    facultyemail: temp.faculty.email,
+                    facultyphonono: temp.faculty.phoneno
+                }
+                callb();
+                
+            }
+            //console.log(childSnapshot.val());
+        });
+        console.log("end foreach");
+        callb();
+    }).catch(function(err) {
+        console.log("firebase error");
+        callb();
+   });   
+}
+
+function getPrevilage(callb) {
+    var refri = database.ref("Notification/");
+    var uids =new Array();
+    refri.once("value").then(function (snapshot) {
+        snapshot.forEach(function(childSnapshot){
+                uids.push(childSnapshot.key);  
+        });
+        callb(uids);
+        
+    }).catch(function(err) {
+        if(err) {
+            callb(uids);        
+        }
+        else {
+            callb(uids);
+        }
+    });  
+            
+}
+
+
+
 function getAllSchools(cb) {
     var refri = database.ref("Schools/");
     viewschools = new Array();
@@ -401,7 +564,7 @@ function getAllSchools(cb) {
         else {
             cb(viewschools);
         }
-    });;
+    });
 }
 
 function checkInternet(cb) {
